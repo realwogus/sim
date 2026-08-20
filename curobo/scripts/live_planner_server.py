@@ -17,6 +17,8 @@ from curobo.motion_planner import MotionPlanner, MotionPlannerCfg
 from curobo.scene import Scene
 from curobo.types import GoalToolPose, JointState, Pose, ToolPoseCriteria
 
+from dual_piper_config import TOOL_FRAMES, build_dual_robot_config
+
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 ROBOT_CONFIG = PROJECT_DIR / "robots" / "piper" / "piper.yml"
@@ -35,15 +37,33 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--port", type=int, default=5561)
     parser.add_argument("--warmup-iterations", type=int, default=3)
     parser.add_argument("--mode", choices=("red", "endpoint"), default="red")
+    parser.add_argument(
+        "--dual",
+        action="store_true",
+        help="use one 12-DOF robot model and solve both PiPER TCP goals jointly",
+    )
     return parser.parse_args()
 
 
-def load_configs(mode: str) -> tuple[dict[str, Any], dict[str, Any]]:
-    robot = yaml.safe_load(ROBOT_CONFIG.read_text(encoding="utf-8"))
-    robot["kinematics"]["cspace"]["default_joint_position"] = [0.0] * 6
+def load_configs(mode: str, dual: bool = False) -> tuple[dict[str, Any], dict[str, Any]]:
+    robot = (
+        build_dual_robot_config()
+        if dual
+        else yaml.safe_load(ROBOT_CONFIG.read_text(encoding="utf-8"))
+    )
+    if not dual:
+        robot["kinematics"]["cspace"]["default_joint_position"] = [0.0] * 6
     world_path = ENDPOINT_WORLD_CONFIG if mode == "endpoint" else WORLD_CONFIG
     world = yaml.safe_load(world_path.read_text(encoding="utf-8"))
     return robot, world
+
+
+def world_for_dual(template: dict[str, Any], obstacles_enabled: bool) -> dict[str, Any]:
+    """Return the fixed world in the shared primary-base coordinate frame."""
+    world = json.loads(json.dumps(template))
+    if not obstacles_enabled:
+        world["cuboid"] = {"tabletop": world["cuboid"]["tabletop"]}
+    return world
 
 
 def world_for_red(template: dict[str, Any], red_pose_world: list[float]) -> dict[str, Any]:
@@ -245,11 +265,108 @@ def plan_request(
     return response
 
 
+def plan_dual_request(
+    planner: MotionPlanner,
+    world_template: dict[str, Any],
+    request: dict[str, Any],
+) -> dict[str, Any]:
+    """Plan both arms in one 12-DOF solve with two simultaneous TCP goals."""
+    request_id = request.get("id")
+    started = time.perf_counter()
+    start_values = request["start"]
+    if len(start_values) != 12:
+        raise ValueError("dual start must contain 12 joint values")
+    targets = request["target_positions_world"]
+    if set(targets) != {"primary", "partner"}:
+        raise ValueError("dual targets must contain primary and partner")
+    if any(len(targets[arm]) != 3 for arm in ("primary", "partner")):
+        raise ValueError("each dual target must contain XYZ")
+
+    obstacles_enabled = bool(request.get("obstacles_enabled", True))
+    planner.update_world(
+        Scene.create(world_for_dual(world_template, obstacles_enabled))
+    )
+    goal_positions = {
+        arm: torch.tensor(
+            [[target[0], target[1], target[2] - ROBOT_BASE_WORLD_Z]],
+            device="cuda",
+            dtype=torch.float32,
+        )
+        for arm, target in targets.items()
+    }
+    goal_quaternions = {
+        "primary": torch.tensor(
+            [GOAL_QUATERNION], device="cuda", dtype=torch.float32
+        ),
+        # Partner base is yawed pi in the shared frame.
+        "partner": torch.tensor(
+            [[0.46533674, 0.46533632, -0.53241307, 0.53240967]],
+            device="cuda",
+            dtype=torch.float32,
+        ),
+    }
+    goal = GoalToolPose.from_poses(
+        {
+            TOOL_FRAMES[0]: Pose(
+                position=goal_positions["primary"],
+                quaternion=goal_quaternions["primary"],
+            ),
+            TOOL_FRAMES[1]: Pose(
+                position=goal_positions["partner"],
+                quaternion=goal_quaternions["partner"],
+            ),
+        },
+        ordered_tool_frames=list(TOOL_FRAMES),
+        num_goalset=1,
+    )
+    start = JointState.from_position(
+        torch.tensor([start_values], device="cuda", dtype=torch.float32),
+        joint_names=planner.joint_names,
+    )
+    result = None
+    attempts = 0
+    for attempts in range(1, 4):
+        result = planner.plan_pose(goal, start)
+        if result is not None and bool(result.success.any().item()):
+            break
+    elapsed = time.perf_counter() - started
+    if result is None or not bool(result.success.any().item()):
+        return {
+            "id": request_id,
+            "ok": False,
+            "arm": "dual",
+            "error": "No collision-free joint 12-DOF trajectory was found",
+            "wall_time": elapsed,
+            "target_positions_world": targets,
+            "obstacles_enabled": obstacles_enabled,
+            "scene_revision": request.get("scene_revision"),
+            "attempts": attempts,
+        }
+
+    trajectory = result.get_interpolated_plan()
+    positions = trajectory.position.detach().cpu().reshape(-1, 12)
+    return {
+        "id": request_id,
+        "ok": True,
+        "arm": "dual",
+        "joint_names": planner.joint_names,
+        "dt": float(planner.trajopt_solver.config.interpolation_dt),
+        "positions": positions.tolist(),
+        "target_positions_world": targets,
+        "solver_time": float(result.solve_time),
+        "wall_time": elapsed,
+        "scene_revision": request.get("scene_revision"),
+        "obstacles_enabled": obstacles_enabled,
+        "attempts": attempts,
+    }
+
+
 def serve_client(
     connection: socket.socket,
     planner: MotionPlanner,
     world_template: dict[str, Any],
     mode: str,
+    dual: bool,
 ) -> None:
     peer = connection.getpeername()
     print(f"client connected: {peer}", flush=True)
@@ -260,12 +377,19 @@ def serve_client(
                 if request.get("type") == "ping":
                     response = {"id": request.get("id"), "ok": True, "type": "pong"}
                 elif request.get("type") == "plan":
-                    response = plan_request(
-                        planner,
-                        world_template,
-                        request,
-                        mode,
-                    )
+                    if dual:
+                        response = plan_dual_request(
+                            planner,
+                            world_template,
+                            request,
+                        )
+                    else:
+                        response = plan_request(
+                            planner,
+                            world_template,
+                            request,
+                            mode,
+                        )
                     print(
                         f"plan id={request.get('id')} ok={response['ok']} "
                         f"wall={response.get('wall_time', 0):.3f}s "
@@ -286,7 +410,9 @@ def serve_client(
 
 def main() -> None:
     args = parse_args()
-    robot, world = load_configs(args.mode)
+    if args.dual and args.mode != "endpoint":
+        raise ValueError("--dual is supported only with --mode endpoint")
+    robot, world = load_configs(args.mode, args.dual)
     cfg = MotionPlannerCfg.create(
         robot=robot,
         scene_model=world,
@@ -298,10 +424,12 @@ def main() -> None:
     planner = MotionPlanner(cfg)
     try:
         if args.mode == "endpoint":
+            frames = TOOL_FRAMES if args.dual else ("gripper_center",)
             planner.update_tool_pose_criteria(
-                {"gripper_center": ToolPoseCriteria.track_position()}
+                {frame: ToolPoseCriteria.track_position() for frame in frames}
             )
-        print("warming up cuRobo...", flush=True)
+        planner_kind = "joint 12-DOF" if args.dual else "single-arm 6-DOF"
+        print(f"warming up cuRobo {planner_kind} planner...", flush=True)
         planner.warmup(
             enable_graph=True,
             num_warmup_iterations=args.warmup_iterations,
@@ -319,6 +447,7 @@ def main() -> None:
                     planner,
                     world,
                     args.mode,
+                    args.dual,
                 )
     except KeyboardInterrupt:
         print("planner server stopping", flush=True)

@@ -141,6 +141,19 @@ bash scripts/live_endpoint.sh
 스크립트는 `sim` 디렉토리를 컨테이너의 `/workspace`로 마운트한다. 상세 조작법과
 목표 좌표, 장애물 및 두 번째 로봇 키 설정은 `curobo/README.md`에 정리되어 있다.
 
+두 PiPER의 12개 관절을 하나의 cuRobo 문제로 풀려면 저장소 루트에서 다음을
+실행한다.
+
+```bash
+./run/two_mani.sh
+```
+
+이 모드는 두 로봇을 처음부터 표시하고 `primary_gripper_center`와
+`partner_gripper_center` 목표를 하나의 multi-link IK/trajectory optimization에
+전달한다. 반환되는 `[N, 12]` 관절 궤적은 두 팔을 같은 시각에 시작하고 같은
+시간축으로 재생한다. 비교용 6+6자유도 순차 플래너도 함께 시작되며 GUI에서
+`F8` 키를 누르면 두 방식이 전환된다. 전환 후 다음 목표 이동부터 적용된다.
+
 ## 4. GR00T 추론 환경(선택)
 
 GR00T는 이 저장소나 서브모듈에 포함되지 않는다. 사용할 때는 다음을 별도로

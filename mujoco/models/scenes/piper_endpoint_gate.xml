@@ -40,29 +40,29 @@
       material="gate_mat"/>
 
     <!-- One draggable, non-physical shared target for both arms. -->
-    <body name="endpoint_target" mocap="true" pos="0.42 0.08 0.32">
+    <body name="endpoint_target" mocap="true" pos="0.33 0 0.415176865">
       <geom name="endpoint_target_marker" type="sphere" size="0.018"
         rgba="0.15 1.0 0.25 0.75" contype="0" conaffinity="0" density="0"/>
     </body>
 
     <!-- Runtime-derived, non-draggable-in-practice goals around the shared target. -->
-    <body name="primary_endpoint_goal" mocap="true" pos="0.36 0.08 0.32">
+    <body name="primary_endpoint_goal" mocap="true" pos="0.27 0 0.415176865">
       <geom name="primary_endpoint_goal_marker" type="sphere" size="0.012"
         rgba="0.10 0.85 1.0 0.80" contype="0" conaffinity="0" density="0"/>
     </body>
-    <body name="partner_endpoint_target" mocap="true" pos="0.48 0.08 0.32">
+    <body name="partner_endpoint_target" mocap="true" pos="0.39 0 0.415176865">
       <geom name="partner_endpoint_target_marker" type="sphere" size="0.012"
         rgba="1.0 0.18 0.85 0.80" contype="0" conaffinity="0" density="0"/>
     </body>
 
-    <body name="workspace_target" pos="0.30 0.08 0.34"/>
+    <body name="workspace_target" pos="0.33 0 0.38"/>
     <camera name="overview" pos="0.78 -0.82 0.72" mode="targetbody"
       target="workspace_target" fovy="50"/>
   </worldbody>
 
   <keyframe>
     <key name="home"
-      qpos="0 0 0 0 0 0 0.020 -0.020  0 1.0 -1.5 0 0 0 0.020 -0.020"
-      ctrl="0 0 0 0 0 0 0.020  0 1.0 -1.5 0 0 0 0.020"/>
+      qpos="0 0 0 0 0 0 0.020 -0.020  0 0 0 0 0 0 0.020 -0.020"
+      ctrl="0 0 0 0 0 0 0.020  0 0 0 0 0 0 0.020"/>
   </keyframe>
 </mujoco>

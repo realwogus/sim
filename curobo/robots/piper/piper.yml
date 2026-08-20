@@ -10,6 +10,7 @@ kinematics:
   - link4
   - link5
   - link6
+  - gripper_center
   collision_sphere_buffer: 0.0
   collision_spheres:
     arm_base:
@@ -23,6 +24,12 @@ kinematics:
       - -0.011994662694633007
       - 0.06371166557073593
       radius: 0.03502260893583298
+    gripper_center:
+    - center:
+      - 0.0
+      - 0.0
+      - 0.0
+      radius: 0.055
     link1:
     - center:
       - 0.016172725707292557
