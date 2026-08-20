@@ -1,0 +1,119 @@
+<mujoco model="piper_gr00t_task">
+  <compiler angle="radian"/>
+
+  <option timestep="0.002" integrator="implicitfast" cone="elliptic" impratio="10"/>
+
+  <visual>
+    <headlight diffuse="0.7 0.7 0.7" ambient="0.35 0.35 0.35" specular="0.1 0.1 0.1"/>
+    <global azimuth="135" elevation="-25"/>
+  </visual>
+
+  <asset>
+    <model name="piper" file="../mujoco_menagerie/agilex_piper/piper.xml"/>
+    <texture type="skybox" builtin="gradient" rgb1="0.72 0.76 0.80" rgb2="0.25 0.28 0.31"
+      width="512" height="3072"/>
+    <material name="table_mat" rgba="0.055 0.065 0.065 1" roughness="0.85"/>
+    <material name="plate_mat" rgba="0.96 0.96 0.94 1" roughness="0.7"/>
+    <material name="blue_block_mat" rgba="0.02 0.60 0.76 1" roughness="0.55"/>
+    <material name="green_block_mat" rgba="0.42 0.62 0.03 1" roughness="0.55"/>
+    <material name="red_block_mat" rgba="0.86 0.035 0.02 1" roughness="0.55"/>
+    <material name="yellow_block_mat" rgba="0.98 0.62 0.015 1" roughness="0.55"/>
+  </asset>
+
+  <default>
+    <default class="task_block">
+      <geom friction="1.2 0.01 0.001" condim="4" solref="0.01 1" solimp="0.95 0.99 0.001"/>
+      <default class="block_stud">
+        <geom type="cylinder" size="0.0048 0.002" contype="0" conaffinity="0" density="0"/>
+      </default>
+    </default>
+  </default>
+
+  <worldbody>
+    <light pos="0.1 -0.2 1.8" dir="0.1 0 -1" directional="true" diffuse="0.8 0.8 0.8"/>
+
+    <!-- The real demonstrations were recorded on a dark tabletop. The table
+         surface and the PiPER mounting plane are both at z=0.20 m. -->
+    <geom name="table" type="box" pos="0.33 0 0.10" size="0.60 0.55 0.10"
+      material="table_mat" friction="1.1 0.01 0.001" condim="4"/>
+
+    <frame pos="0 0 0.20">
+      <attach model="piper" prefix="piper_"/>
+    </frame>
+
+    <!-- A massless target gives all task cameras the same workspace center. -->
+    <body name="workspace_target" pos="0.37 0 0.24"/>
+
+    <!-- Approximate exterior-camera poses from the three-view training videos.
+         Calibrate these poses if the original camera extrinsics become available. -->
+    <camera name="left" pos="0.12 -0.72 0.74" mode="targetbody" target="workspace_target" fovy="58"/>
+    <camera name="right" pos="0.14 0.72 0.70" mode="targetbody" target="workspace_target" fovy="58"/>
+
+    <!-- This mocap rig is moved to piper_link6 by the Python runner each step. -->
+    <body name="wrist_camera_rig" mocap="true" pos="0.08 0 0.45">
+      <camera name="wrist" mode="fixed" fovy="69"/>
+    </body>
+
+    <!-- A thin white plate. The raised rim is visual-only; the flat center is
+         the collision surface used by the placement task. -->
+    <body name="white_plate" pos="0.43 -0.27 0.213">
+      <geom name="plate_surface" type="cylinder" size="0.105 0.006" material="plate_mat"
+        friction="0.9 0.005 0.0001"/>
+      <geom name="plate_rim" type="cylinder" size="0.118 0.007" material="plate_mat"
+        contype="0" conaffinity="0" density="0"/>
+    </body>
+
+    <!-- 32 x 32 x 72 mm blocks approximating the stacked 2x2 bricks in the
+         demonstrations. MuJoCo box size values are half-extents. -->
+    <body name="blue_block" pos="0.31 0.12 0.236" childclass="task_block">
+      <freejoint name="blue_block_freejoint"/>
+      <geom name="blue_block_collision" type="box" size="0.016 0.016 0.036" mass="0.055"
+        material="blue_block_mat"/>
+      <geom class="block_stud" pos="-0.008 -0.008 0.038" material="blue_block_mat"/>
+      <geom class="block_stud" pos="-0.008 0.008 0.038" material="blue_block_mat"/>
+      <geom class="block_stud" pos="0.008 -0.008 0.038" material="blue_block_mat"/>
+      <geom class="block_stud" pos="0.008 0.008 0.038" material="blue_block_mat"/>
+    </body>
+
+    <body name="green_block" pos="0.35 -0.04 0.236" childclass="task_block">
+      <freejoint name="green_block_freejoint"/>
+      <geom name="green_block_collision" type="box" size="0.016 0.016 0.036" mass="0.055"
+        material="green_block_mat"/>
+      <geom class="block_stud" pos="-0.008 -0.008 0.038" material="green_block_mat"/>
+      <geom class="block_stud" pos="-0.008 0.008 0.038" material="green_block_mat"/>
+      <geom class="block_stud" pos="0.008 -0.008 0.038" material="green_block_mat"/>
+      <geom class="block_stud" pos="0.008 0.008 0.038" material="green_block_mat"/>
+    </body>
+
+    <body name="red_block" pos="0.42 0.08 0.236" childclass="task_block">
+      <freejoint name="red_block_freejoint"/>
+      <geom name="red_block_collision" type="box" size="0.016 0.016 0.036" mass="0.055"
+        material="red_block_mat"/>
+      <geom class="block_stud" pos="-0.008 -0.008 0.038" material="red_block_mat"/>
+      <geom class="block_stud" pos="-0.008 0.008 0.038" material="red_block_mat"/>
+      <geom class="block_stud" pos="0.008 -0.008 0.038" material="red_block_mat"/>
+      <geom class="block_stud" pos="0.008 0.008 0.038" material="red_block_mat"/>
+    </body>
+
+    <body name="yellow_block" pos="0.47 -0.08 0.236" childclass="task_block">
+      <freejoint name="yellow_block_freejoint"/>
+      <geom name="yellow_block_collision" type="box" size="0.016 0.016 0.036" mass="0.055"
+        material="yellow_block_mat"/>
+      <geom class="block_stud" pos="-0.008 -0.008 0.038" material="yellow_block_mat"/>
+      <geom class="block_stud" pos="-0.008 0.008 0.038" material="yellow_block_mat"/>
+      <geom class="block_stud" pos="0.008 -0.008 0.038" material="yellow_block_mat"/>
+      <geom class="block_stud" pos="0.008 0.008 0.038" material="yellow_block_mat"/>
+    </body>
+  </worldbody>
+
+  <!-- Robot: 8 qpos. Each free block: xyz + quaternion = 7 qpos. -->
+  <keyframe>
+    <key name="home"
+      qpos="0 0 0 0 0 0 0.020 -0.020
+            0.31 0.12 0.236 1 0 0 0
+            0.35 -0.04 0.236 1 0 0 0
+            0.42 0.08 0.236 1 0 0 0
+            0.47 -0.08 0.236 1 0 0 0"
+      ctrl="0 0 0 0 0 0 0.020"/>
+  </keyframe>
+</mujoco>

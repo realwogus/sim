@@ -1,0 +1,9 @@
+[submodule "curobo/vendor/curobo"]
+	path = curobo/vendor/curobo
+	url = https://github.com/NVlabs/curobo.git
+[submodule "mujoco/models/mujoco_menagerie"]
+	path = mujoco/models/mujoco_menagerie
+	url = https://github.com/google-deepmind/mujoco_menagerie.git
+[submodule "third_party/piper_isaac_sim"]
+	path = third_party/piper_isaac_sim
+	url = https://github.com/agilexrobotics/piper_isaac_sim.git

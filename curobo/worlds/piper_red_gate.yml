@@ -1,0 +1,21 @@
+# Collision geometry matching ../mujoco/models/scenes/piper_red_gate.xml.
+# Poses are in the PiPER base frame (MuJoCo world z minus 0.20 m).
+cuboid:
+  tabletop:
+    dims: [1.20, 1.10, 0.20]
+    pose: [0.33, 0.0, -0.10, 1.0, 0.0, 0.0, 0.0]
+  gate_left:
+    dims: [0.04, 0.04, 0.32]
+    pose: [0.28, -0.08, 0.16, 1.0, 0.0, 0.0, 0.0]
+  gate_right:
+    dims: [0.04, 0.04, 0.32]
+    pose: [0.28, 0.24, 0.16, 1.0, 0.0, 0.0, 0.0]
+  gate_bottom:
+    dims: [0.04, 0.36, 0.04]
+    pose: [0.28, 0.08, 0.02, 1.0, 0.0, 0.0, 0.0]
+  gate_top:
+    dims: [0.04, 0.36, 0.04]
+    pose: [0.28, 0.08, 0.30, 1.0, 0.0, 0.0, 0.0]
+  red_block:
+    dims: [0.032, 0.032, 0.072]
+    pose: [0.42, 0.08, 0.036, 1.0, 0.0, 0.0, 0.0]

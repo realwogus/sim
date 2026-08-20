@@ -1,0 +1,68 @@
+<mujoco model="piper_endpoint_gate_task">
+  <compiler angle="radian"/>
+  <option timestep="0.002" integrator="implicitfast" cone="elliptic" impratio="10"/>
+
+  <visual>
+    <headlight diffuse="0.7 0.7 0.7" ambient="0.35 0.35 0.35" specular="0.1 0.1 0.1"/>
+    <global azimuth="145" elevation="-23"/>
+  </visual>
+
+  <asset>
+    <model name="piper" file="../mujoco_menagerie/agilex_piper/piper.xml"/>
+    <texture type="skybox" builtin="gradient" rgb1="0.72 0.76 0.80" rgb2="0.25 0.28 0.31"
+      width="512" height="3072"/>
+    <material name="table_mat" rgba="0.055 0.065 0.065 1" roughness="0.85"/>
+    <material name="gate_mat" rgba="0.92 0.58 0.08 1" roughness="0.65"/>
+  </asset>
+
+  <worldbody>
+    <light pos="0.1 -0.2 1.8" dir="0.1 0 -1" directional="true" diffuse="0.8 0.8 0.8"/>
+    <geom name="table" type="box" pos="0.33 0 0.10" size="0.60 0.55 0.10"
+      material="table_mat" friction="1.1 0.01 0.001" condim="4"/>
+
+    <frame pos="0 0 0.20">
+      <attach model="piper" prefix="piper_"/>
+    </frame>
+
+    <!-- Dormant second arm: runtime code reveals it with + and hides it with -.
+         Its base is opposite the primary arm and yawed 180 degrees so they face. -->
+    <frame pos="0.66 0 0.20" euler="0 0 3.141592653589793">
+      <attach model="piper" prefix="partner_"/>
+    </frame>
+
+    <geom name="gate_left" type="box" pos="0.28 -0.08 0.36" size="0.02 0.02 0.16"
+      material="gate_mat"/>
+    <geom name="gate_right" type="box" pos="0.28 0.24 0.36" size="0.02 0.02 0.16"
+      material="gate_mat"/>
+    <geom name="gate_bottom" type="box" pos="0.28 0.08 0.22" size="0.02 0.18 0.02"
+      material="gate_mat"/>
+    <geom name="gate_top" type="box" pos="0.28 0.08 0.50" size="0.02 0.18 0.02"
+      material="gate_mat"/>
+
+    <!-- One draggable, non-physical shared target for both arms. -->
+    <body name="endpoint_target" mocap="true" pos="0.42 0.08 0.32">
+      <geom name="endpoint_target_marker" type="sphere" size="0.018"
+        rgba="0.15 1.0 0.25 0.75" contype="0" conaffinity="0" density="0"/>
+    </body>
+
+    <!-- Runtime-derived, non-draggable-in-practice goals around the shared target. -->
+    <body name="primary_endpoint_goal" mocap="true" pos="0.36 0.08 0.32">
+      <geom name="primary_endpoint_goal_marker" type="sphere" size="0.012"
+        rgba="0.10 0.85 1.0 0.80" contype="0" conaffinity="0" density="0"/>
+    </body>
+    <body name="partner_endpoint_target" mocap="true" pos="0.48 0.08 0.32">
+      <geom name="partner_endpoint_target_marker" type="sphere" size="0.012"
+        rgba="1.0 0.18 0.85 0.80" contype="0" conaffinity="0" density="0"/>
+    </body>
+
+    <body name="workspace_target" pos="0.30 0.08 0.34"/>
+    <camera name="overview" pos="0.78 -0.82 0.72" mode="targetbody"
+      target="workspace_target" fovy="50"/>
+  </worldbody>
+
+  <keyframe>
+    <key name="home"
+      qpos="0 0 0 0 0 0 0.020 -0.020  0 1.0 -1.5 0 0 0 0.020 -0.020"
+      ctrl="0 0 0 0 0 0 0.020  0 1.0 -1.5 0 0 0 0.020"/>
+  </keyframe>
+</mujoco>

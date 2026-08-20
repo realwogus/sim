@@ -1,0 +1,21 @@
+# MuJoCo piper_gr00t.xml task objects expressed in the PiPER base frame.
+# MuJoCo robot base world offset: [0, 0, 0.20] m.
+cuboid:
+  tabletop:
+    dims: [1.20, 1.10, 0.20]
+    pose: [0.33, 0.0, -0.10, 1.0, 0.0, 0.0, 0.0]
+  white_plate:
+    dims: [0.21, 0.21, 0.012]
+    pose: [0.43, -0.27, 0.013, 1.0, 0.0, 0.0, 0.0]
+  blue_block:
+    dims: [0.032, 0.032, 0.072]
+    pose: [0.31, 0.12, 0.036, 1.0, 0.0, 0.0, 0.0]
+  green_block:
+    dims: [0.032, 0.032, 0.072]
+    pose: [0.35, -0.04, 0.036, 1.0, 0.0, 0.0, 0.0]
+  red_block:
+    dims: [0.032, 0.032, 0.072]
+    pose: [0.42, 0.08, 0.036, 1.0, 0.0, 0.0, 0.0]
+  yellow_block:
+    dims: [0.032, 0.032, 0.072]
+    pose: [0.47, -0.08, 0.036, 1.0, 0.0, 0.0, 0.0]

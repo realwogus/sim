@@ -1,0 +1,9 @@
+# Coordinates are relative to the PiPER mounting plane. In the MuJoCo task,
+# the robot base is at world z=0.20 m, so tabletop z=0 becomes world z=0.20.
+cuboid:
+  tabletop:
+    dims: [1.20, 1.10, 0.20]
+    pose: [0.33, 0.0, -0.10, 1.0, 0.0, 0.0, 0.0]
+  white_plate:
+    dims: [0.21, 0.21, 0.012]
+    pose: [0.43, -0.27, 0.006, 1.0, 0.0, 0.0, 0.0]

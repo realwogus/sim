@@ -1,0 +1,20 @@
+# Local Python environments and caches
+.venv/
+**/.venv/
+__pycache__/
+**/__pycache__/
+.pytest_cache/
+**/.pytest_cache/
+*.py[cod]
+*.egg-info/
+
+# Generated simulation and training outputs
+**/outputs/*
+!**/outputs/.gitkeep
+*.log
+MUJOCO_LOG.TXT
+
+# Editor and operating-system files
+.idea/
+.vscode/
+.DS_Store
