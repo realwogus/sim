@@ -1,0 +1,5 @@
+# Independent collision world for the ceiling-mounted rail PiPER.
+cuboid:
+  rail_ceiling:
+    dims: [1.20, 0.84, 0.20]
+    pose: [0.33, 1.55, 1.10, 1.0, 0.0, 0.0, 0.0]

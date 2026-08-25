@@ -1,0 +1,53 @@
+<mujoco model="rail_piper_task">
+  <compiler angle="radian"/>
+  <option timestep="0.002" integrator="implicitfast" cone="elliptic" impratio="10"/>
+
+  <visual>
+    <headlight diffuse="0.7 0.7 0.7" ambient="0.35 0.35 0.35" specular="0.1 0.1 0.1"/>
+    <global azimuth="145" elevation="-23"/>
+  </visual>
+
+  <asset>
+    <model name="piper" file="../mujoco_menagerie/agilex_piper/piper.xml"/>
+    <texture type="skybox" builtin="gradient" rgb1="0.72 0.76 0.80" rgb2="0.25 0.28 0.31"
+      width="512" height="3072"/>
+    <material name="ground_mat" rgba="0.055 0.065 0.065 1" roughness="0.85"/>
+  </asset>
+
+  <worldbody>
+    <light pos="0.33 1.35 1.8" dir="0.1 0 -1" directional="true" diffuse="0.8 0.8 0.8"/>
+    <geom name="rail_ceiling" type="box" pos="0.33 1.55 1.10" size="0.60 0.42 0.10"
+      material="ground_mat" friction="1.1 0.01 0.001" condim="4"/>
+    <geom name="rail_track_left" type="box" pos="0.33 1.47 0.975" size="0.52 0.025 0.025"
+      rgba="0.20 0.22 0.24 1" contype="0" conaffinity="0"/>
+    <geom name="rail_track_right" type="box" pos="0.33 1.63 0.975" size="0.52 0.025 0.025"
+      rgba="0.20 0.22 0.24 1" contype="0" conaffinity="0"/>
+
+    <body name="rail_carriage" pos="0.33 1.55 0.92">
+      <joint name="rail_slide" type="slide" axis="1 0 0" range="-0.40 0.40"
+        damping="0" armature="0"/>
+      <geom name="rail_carriage_geom" type="box" size="0.10 0.12 0.03"
+        rgba="0.32 0.36 0.40 1" mass="8"/>
+      <!-- Rotate the entire arm 180 degrees about local X so it hangs down. -->
+      <frame pos="0 0 -0.03" euler="3.141592653589793 0 0">
+        <attach model="piper" prefix="rail_"/>
+      </frame>
+    </body>
+
+    <body name="rail_endpoint_target" mocap="true" pos="0.33 1.55 0.68">
+      <geom name="rail_endpoint_target_marker" type="sphere" size="0.018"
+        rgba="1.0 0.35 0.08 0.80" contype="0" conaffinity="0" density="0"/>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <position name="rail_slide" joint="rail_slide" kp="300" kv="40"
+      ctrlrange="-0.40 0.40"/>
+  </actuator>
+
+  <keyframe>
+    <key name="home"
+      qpos="0  0 0 0 0 0 0 0.020 -0.020"
+      ctrl="0  0 0 0 0 0 0 0.020"/>
+  </keyframe>
+</mujoco>

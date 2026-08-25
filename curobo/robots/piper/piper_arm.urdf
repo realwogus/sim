@@ -88,13 +88,24 @@
     <limit lower="-3.14" upper="3.14" effort="100" velocity="3"/>
   </joint>
 
-  <!-- Center between the fingers. This is the motion-planning TCP. -->
-  <link name="gripper_center">
-    <!-- Conservative envelope for the palm and fingers omitted as planning DOFs. -->
-    <collision><geometry><sphere radius="0.055"/></geometry></collision>
-  </link>
+  <!-- Center between the fingertips. This is the motion-planning TCP. -->
+  <link name="gripper_center"/>
   <joint name="link6_to_gripper_center" type="fixed">
     <origin xyz="0 0 0.13503" rpy="1.5708 0 1.5708"/>
     <parent link="link6"/><child link="gripper_center"/>
+  </joint>
+
+  <!-- Fixed collision-only frames.  cuRobo assigns the fitted spheres from
+       piper.yml to these links; keeping the fingertip pads separate allows
+       only the intentional pad-to-pad contact pair to be ignored. -->
+  <link name="gripper_body"/>
+  <joint name="gripper_center_to_body" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="gripper_center"/><child link="gripper_body"/>
+  </joint>
+  <link name="gripper_contact"/>
+  <joint name="gripper_center_to_contact" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="gripper_center"/><child link="gripper_contact"/>
   </joint>
 </robot>

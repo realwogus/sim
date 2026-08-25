@@ -10,7 +10,8 @@ kinematics:
   - link4
   - link5
   - link6
-  - gripper_center
+  - gripper_body
+  - gripper_contact
   collision_sphere_buffer: 0.0
   collision_spheres:
     arm_base:
@@ -24,12 +25,20 @@ kinematics:
       - -0.011994662694633007
       - 0.06371166557073593
       radius: 0.03502260893583298
-    gripper_center:
-    - center:
-      - 0.0
-      - 0.0
-      - 0.0
-      radius: 0.055
+    # MuJoCo finger boxes projected into the gripper_center frame.  The old
+    # single 55 mm sphere falsely collided when TCP goals were 60 mm apart.
+    gripper_body:
+    - {center: [-0.0225, -0.014, 0.0], radius: 0.012}
+    - {center: [-0.0225, -0.028, 0.0], radius: 0.012}
+    - {center: [-0.0225, -0.042, 0.0], radius: 0.012}
+    - {center: [-0.0225, -0.056, 0.0], radius: 0.012}
+    - {center: [ 0.0225, -0.014, 0.0], radius: 0.012}
+    - {center: [ 0.0225, -0.028, 0.0], radius: 0.012}
+    - {center: [ 0.0225, -0.042, 0.0], radius: 0.012}
+    - {center: [ 0.0225, -0.056, 0.0], radius: 0.012}
+    gripper_contact:
+    - {center: [-0.0225, -0.002, 0.0], radius: 0.008}
+    - {center: [ 0.0225, -0.002, 0.0], radius: 0.008}
     link1:
     - center:
       - 0.016172725707292557
@@ -437,12 +446,18 @@ kinematics:
     link4: 0.0
     link5: 0.0
     link6: 0.0
+    gripper_body: 0.0
+    gripper_contact: 0.0
   self_collision_ignore:
     arm_base:
     - link1
     - link3
-    gripper_center:
+    gripper_body:
     - link6
+    - gripper_contact
+    gripper_contact:
+    - link6
+    - gripper_body
     link1:
     - arm_base
     - link2
@@ -464,7 +479,8 @@ kinematics:
     - link6
     link6:
     - link5
-    - gripper_center
+    - gripper_body
+    - gripper_contact
   tool_frames:
   - gripper_center
   urdf_path: /workspace/curobo/robots/piper/piper_arm.urdf

@@ -39,6 +39,11 @@ python scripts/view_piper.py
 python scripts/view_scene.py
 ```
 
+cuRobo endpoint 장면과 별도로 천장 레일과 상하 반전된 PiPER 하나만 포함한
+`rail_piper.xml`이 있다. 이 팔의 독립 7-DOF 계획 GUI는 저장소 루트의
+`./run/rail_mani.sh`로 실행한다. GUI는 `rail_slide`을 동역학적으로 적분하지
+않고 명령 위치에 직접 고정한다.
+
 학습 영상의 검은 테이블, 흰 접시, 여러 색 블록과 3개 정책 카메라를 재현한
 GR00T 태스크 씬은 다음처럼 확인한다.
 
